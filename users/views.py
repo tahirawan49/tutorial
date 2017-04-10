@@ -54,16 +54,8 @@ class TaskView(APIView):
             return Response(tasks)
         return Response(serializer.errors)
 
-    def update(self, request):
-        serializer = TaskSerializer(data=request.POST, context={'user_id': request.user.id})
-        if serializer.is_valid():
-            serializer.save()
-            tasks = self.get_all_tasks(request)
-            return Response(tasks)
-        return Response(serializer.errors)
 
-
-class UpdateTaskView(APIView):
+class TaskDetailsView(APIView):
     queryset = Task.objects.filter(deleted=False)
     serializer_class = TaskSerializer
     authentication_classes = (SessionAuthentication, BasicAuthentication)

@@ -17,7 +17,7 @@ from django.conf.urls import url, include
 from rest_framework import routers
 
 from users import views
-from users.views import UserListView, TaskView, UpdateTaskView
+from users.views import UserListView, TaskView, TaskDetailsView
 
 router = routers.DefaultRouter()
 router.register(r'users', views.UserViewSet)
@@ -30,5 +30,5 @@ urlpatterns = [
     url(r'^user_list/', UserListView.as_view(), name='example_view'),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^tasks/', TaskView.as_view(), name='task_view'),
-    url(r'^task/details/(?P<pk>\d+)/$', UpdateTaskView.as_view(), name='update_task'),
+    url(r'^task/details/(?P<pk>\d+)/$', TaskDetailsView.as_view(), name='update_task'),
 ]
