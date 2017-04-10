@@ -30,5 +30,5 @@ urlpatterns = [
     url(r'^user_list/', UserListView.as_view(), name='example_view'),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^tasks/', TaskView.as_view(), name='task_view'),
-    url(r'^update_task/(?P<id>\d+)/$', UpdateTaskView.as_view(), name='update_task'),
+    url(r'^update_task/(?P<pk>\d+)/$', UpdateTaskView.as_view(), name='update_task'),
 ]

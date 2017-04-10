@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User, Group
+from django.shortcuts import redirect
 from rest_framework import viewsets
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -31,14 +32,14 @@ class UserListView(APIView):
 
 
 class TaskView(APIView):
-    queryset = Task.objects.all()
+    queryset = Task.objects.filter(deleted=False)
     serializer_class = TaskSerializer
     authentication_classes = (SessionAuthentication, BasicAuthentication)
     permission_classes = (IsAuthenticated,)
 
     # noinspection PyMethodMayBeStatic
     def get_all_tasks(self, request):
-        return TaskSerializer(Task.objects.all(), many=True, context={'user_id': request.user.id}).data
+        return TaskSerializer(Task.objects.filter(deleted=False), many=True, context={'user_id': request.user.id}).data
 
     def get(self, request):
         tasks = self.get_all_tasks(request)
@@ -62,25 +63,31 @@ class TaskView(APIView):
 
 
 class UpdateTaskView(APIView):
-    queryset = Task.objects.all()
+    queryset = Task.objects.filter(deleted=False)
     serializer_class = TaskSerializer
     authentication_classes = (SessionAuthentication, BasicAuthentication)
     permission_classes = (IsAuthenticated,)
 
     # noinspection PyMethodMayBeStatic
-    def get_all_tasks(self, request, id):
+    def get_task(self, request, id):
         return TaskSerializer(Task.objects.get(id=id), many=False, context={'user_id': request.user.id}).data
 
-    def get(self, request, id):
-        tasks = self.get_all_tasks(request, id)
+    def get(self, request, pk):
+        tasks = self.get_task(request, pk)
         return Response(tasks)
 
-    def post(self, request, id):
+    def post(self, request, pk):
 
-        task = Task.objects.get(id=id)
+        task = Task.objects.get(id=pk)
         serializer = TaskSerializer(task, data=request.POST, context={'user_id': request.user.id})
         if serializer.is_valid():
             serializer.save()
             tasks = serializer.data
             return Response(tasks)
         return Response(serializer.errors)
+
+    def delete(self, request, pk):
+        task = Task.objects.filter(id=pk)
+        if task:
+            task.update(deleted=True)
+        return redirect('task_view')
