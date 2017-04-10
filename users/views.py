@@ -68,19 +68,16 @@ class UpdateTaskView(APIView):
     authentication_classes = (SessionAuthentication, BasicAuthentication)
     permission_classes = (IsAuthenticated,)
 
+    # noinspection PyMethodMayBeStatic
     def get_object(self, pk):
         try:
             return Task.objects.get(pk=pk, deleted=False)
         except Task.DoesNotExist:
             raise Http404
 
-    # noinspection PyMethodMayBeStatic
-    def get_task(self, request, id):
-        return TaskSerializer(self.get_object(id), many=False, context={'user_id': request.user.id}).data
-
     def get(self, request, pk):
-        tasks = self.get_task(request, pk)
-        return Response(tasks)
+        task = TaskSerializer(self.get_object(pk), many=False, context={'user_id': request.user.id}).data
+        return Response(task)
 
     def post(self, request, pk):
 
