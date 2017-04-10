@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User, Group
-from django.shortcuts import redirect
-from rest_framework import viewsets
+from django.http import Http404
+from rest_framework import viewsets, status
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -68,9 +68,15 @@ class UpdateTaskView(APIView):
     authentication_classes = (SessionAuthentication, BasicAuthentication)
     permission_classes = (IsAuthenticated,)
 
+    def get_object(self, pk):
+        try:
+            return Task.objects.get(pk=pk, deleted=False)
+        except Task.DoesNotExist:
+            raise Http404
+
     # noinspection PyMethodMayBeStatic
     def get_task(self, request, id):
-        return TaskSerializer(Task.objects.get(id=id), many=False, context={'user_id': request.user.id}).data
+        return TaskSerializer(self.get_object(id), many=False, context={'user_id': request.user.id}).data
 
     def get(self, request, pk):
         tasks = self.get_task(request, pk)
@@ -78,7 +84,7 @@ class UpdateTaskView(APIView):
 
     def post(self, request, pk):
 
-        task = Task.objects.get(id=pk)
+        task = self.get_object(pk)
         serializer = TaskSerializer(task, data=request.POST, context={'user_id': request.user.id})
         if serializer.is_valid():
             serializer.save()
@@ -87,7 +93,8 @@ class UpdateTaskView(APIView):
         return Response(serializer.errors)
 
     def delete(self, request, pk):
-        task = Task.objects.filter(id=pk)
+        task = self.get_object(pk)
         if task:
-            task.update(deleted=True)
-        return redirect('task_view')
+            task.deleted = True
+            task.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
