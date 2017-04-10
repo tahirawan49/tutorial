@@ -16,12 +16,19 @@ class GroupSerializer(serializers.HyperlinkedModelSerializer):
         fields = ('url', 'name')
 
 
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('url', 'username', 'email', 'groups')
+
+
 class TaskSerializer(serializers.ModelSerializer):
     my_task = serializers.SerializerMethodField('self_task')
+    user = UserProfileSerializer(many=False, read_only=True)
 
     class Meta:
         model = Task
-        fields = ['id', 'title', 'description', 'my_task', 'done']
+        fields = ['id', 'title', 'description', 'my_task', 'done', 'user']
 
     def self_task(self, obj):
         user_id = self.context.get("user_id")

@@ -39,7 +39,8 @@ class TaskView(APIView):
 
     # noinspection PyMethodMayBeStatic
     def get_all_tasks(self, request):
-        return TaskSerializer(Task.objects.filter(deleted=False), many=True, context={'user_id': request.user.id}).data
+        return TaskSerializer(Task.objects.filter(deleted=False), many=True,
+                              context={'request': request, 'user_id': request.user.id}).data
 
     def get(self, request):
         tasks = self.get_all_tasks(request)
@@ -76,7 +77,8 @@ class UpdateTaskView(APIView):
             raise Http404
 
     def get(self, request, pk):
-        task = TaskSerializer(self.get_object(pk), many=False, context={'user_id': request.user.id}).data
+        task = TaskSerializer(self.get_object(pk), many=False,
+                              context={'request': request, 'user_id': request.user.id}).data
         return Response(task)
 
     def post(self, request, pk):
